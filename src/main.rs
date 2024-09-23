@@ -1,11 +1,21 @@
 use reqwest::multipart;
 use tokio::{fs::File, io::AsyncReadExt};
+use clap::Parser;
+
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long,env)]
+    api_key: String,
+}
 
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
     let is_alive = get_is_alive().await;
     println!("{:?}", is_alive);
-    let is_proof_verification = proof_verification().await;
+    let is_proof_verification = proof_verification(args.api_key).await;
     println!("{:?}", is_proof_verification);
 }
 
@@ -13,8 +23,7 @@ async fn get_is_alive() -> Result<bool, reqwest::Error> {
     let res = reqwest::get("https://sharp.api.herodotus.cloud/is-alive").await?;
     Ok(res.status().is_success())
 }
-async fn proof_verification() -> Result<bool, reqwest::Error> {
-    let api_key = "a10adb40-d74f-478d-8ad0-15acc01fe1f6"; //api key from https://dashboard.herodotus.dev/
+async fn proof_verification(api_key: String) -> Result<bool, reqwest::Error> {
     let url = format!("https://sharp.api.herodotus.cloud/submit-sharp-query/proof_verification?apiKey={}", api_key);
     let client = reqwest::Client::new();
 
@@ -29,6 +38,7 @@ async fn proof_verification() -> Result<bool, reqwest::Error> {
 
     let response = client
         .post(url)
+        .header("accept", "application/json")
         .multipart(form)
         .send()
         .await?;
