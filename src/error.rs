@@ -12,4 +12,6 @@ pub enum SharpSdkError {
     AnyHowError(#[from] anyhow::Error),
     #[error(transparent)]
     UrlParseError(#[from] url::ParseError),
+    #[error("Missing program hash or program file")]
+    MissingProgramHashOrFile,
 }

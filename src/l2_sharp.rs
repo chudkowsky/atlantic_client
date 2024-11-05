@@ -5,11 +5,11 @@ use crate::{
 use reqwest::multipart;
 
 impl SharpSdk {
-    pub async fn l2_submit_proof_generation(
+    pub async fn proof_generation(
         &self,
-        pie_file: Vec<u8>, // PIE file as a byte array
-        layout: &str,      // Layout parameter (e.g., "starknet_with_keccak")
-        prover: &str,      // Prover type (e.g., "herodotus" or "starkware")
+        pie_file: Vec<u8>,     // PIE file as a byte array
+        layout: &str,          // Layout parameter (e.g., "starknet_with_keccak")
+        prover: ProverVersion, // Prover type (e.g., "herodotus" or "starkware")
     ) -> Result<QueryResponse, SharpSdkError> {
         let form = multipart::Form::new()
             .part(
@@ -34,24 +34,31 @@ impl SharpSdk {
         Ok(response)
     }
 
-    pub async fn l2_submit_sharp_query(
+    pub async fn l2_atlantic_query(
         &self,
-        program_hash: &str,
         program_file: Vec<u8>,
         input_file: Vec<u8>,
         prover: ProverVersion,
         mock_fact_hash: bool,
     ) -> Result<QueryResponse, SharpSdkError> {
         let form = multipart::Form::new()
-            .text("programHash", program_hash.to_string())
-            .part("programFile", multipart::Part::bytes(program_file))
-            .part("inputFile", multipart::Part::bytes(input_file))
+            .part(
+                "programFile",
+                multipart::Part::bytes(program_file)
+                    .file_name("program.json")
+                    .mime_str("application/json")?,
+            )
+            .part(
+                "inputFile",
+                multipart::Part::bytes(input_file)
+                    .file_name("input.json")
+                    .mime_str("application/json")?,
+            )
             .text("cairoVersion", 0.to_string())
             .text("prover", prover.to_string())
             .text("mockFactHash", mock_fact_hash.to_string());
-
         let client = reqwest::Client::new();
-        let url = format!("{}?apiKey={}", self.l2.submit_sharp_query, self.api_key);
+        let url = format!("{}?apiKey={}", self.l2.atlantic_query, self.api_key);
         let response = client
             .post(&url)
             .multipart(form)
@@ -59,7 +66,6 @@ impl SharpSdk {
             .await?
             .json::<QueryResponse>()
             .await?;
-
         Ok(response)
     }
 
@@ -71,8 +77,18 @@ impl SharpSdk {
     ) -> Result<QueryResponse, SharpSdkError> {
         let form = multipart::Form::new()
             .text("programHash", program_hash.to_string())
-            .part("programFile", multipart::Part::bytes(program_file))
-            .part("inputFile", multipart::Part::bytes(input_file))
+            .part(
+                "programFile",
+                multipart::Part::bytes(program_file)
+                    .file_name("program.json")
+                    .mime_str("application/json")?,
+            )
+            .part(
+                "inputFile",
+                multipart::Part::bytes(input_file)
+                    .file_name("input.json")
+                    .mime_str("application/json")?,
+            )
             .text("cairoVersion", 0.to_string());
 
         let client = reqwest::Client::new();
@@ -84,7 +100,6 @@ impl SharpSdk {
             .await?
             .json::<QueryResponse>()
             .await?;
-
         Ok(response)
     }
 
@@ -97,8 +112,18 @@ impl SharpSdk {
     ) -> Result<QueryResponse, SharpSdkError> {
         let form = multipart::Form::new()
             .text("programHash", program_hash.to_string())
-            .part("programFile", multipart::Part::bytes(program_file))
-            .part("inputFile", multipart::Part::bytes(input_file))
+            .part(
+                "programFile",
+                multipart::Part::bytes(program_file)
+                    .file_name("program.json")
+                    .mime_str("application/json")?,
+            )
+            .part(
+                "inputFile",
+                multipart::Part::bytes(input_file)
+                    .file_name("input.json")
+                    .mime_str("application/json")?,
+            )
             .text("cairoVersion", 0.to_string())
             .text("prover", prover.to_string());
 
@@ -117,7 +142,7 @@ impl SharpSdk {
 
         Ok(response)
     }
-
+    //Works
     pub async fn l2_proof_generation_to_proof_verification(
         &self,
         pie_file: Vec<u8>,

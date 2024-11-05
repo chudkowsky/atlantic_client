@@ -71,15 +71,15 @@ pub struct SharpQueriesResponse {
     sharp_queries: Vec<SharpQueryDetails>, // List of SharpQueryDetails
     total: usize, // Total count of queries
 }
-pub enum ProverVersion{
+pub enum ProverVersion {
     Starkware,
     Herodotus,
 }
 impl ProverVersion {
     pub fn to_string(&self) -> String {
         match self {
-            ProverVersion::Starkware => "starkware".to_string(),
-            ProverVersion::Herodotus => "herodotus".to_string(),
+            ProverVersion::Starkware => "starkware_sharp".to_string(),
+            ProverVersion::Herodotus => "herodotus_stone".to_string(),
         }
     }
 }
@@ -95,13 +95,13 @@ pub struct SharpSdk {
 }
 #[derive(Debug, Clone)]
 pub struct L1Endpoints {
-    pub submit_sharp_query: Url,
+    pub atlantic_query: Url,
     pub trace_generation: Url,
     pub proof_generation_verification: Url,
 }
 #[derive(Debug, Clone)]
 pub struct L2Endpoints {
-    pub submit_sharp_query: Url,
+    pub atlantic_query: Url,
     pub trace_generation: Url,
     pub from_trace_to_proof_generation: Url,
     pub proof_generation: Url,
@@ -128,43 +128,40 @@ impl SharpSdk {
         Ok(Self {
             api_key,
             l1: L1Endpoints {
-                submit_sharp_query: Url::parse(&format!("{}/l1/submit-sharp-query", base_url))?,
+                atlantic_query: Url::parse(&format!("{}/l1/atlantic-query", base_url))?,
                 trace_generation: Url::parse(&format!(
-                    "{}/l1/submit-sharp-query/trace_generation",
+                    "{}/l1/atlantic-query/trace_generation",
                     base_url
                 ))?,
                 proof_generation_verification: Url::parse(&format!(
-                    "{}/l1/submit-sharp-query/proof_generation_verification",
+                    "{}/l1/atlantic-query/proof_generation_verification",
                     base_url
                 ))?,
             },
             l2: L2Endpoints {
-                submit_sharp_query: Url::parse(&format!("{}/l2/submit-sharp-query", base_url))?,
+                atlantic_query: Url::parse(&format!("{}/l2/atlantic-query", base_url))?,
                 trace_generation: Url::parse(&format!(
-                    "{}/l2/submit-sharp-query/trace-generation",
+                    "{}/l2/atlantic-query/trace-generation",
                     base_url
                 ))?,
                 from_trace_to_proof_generation: Url::parse(&format!(
-                    "{}/l2/submit-sharp-query/from-trace-generation-to-proof-generation",
+                    "{}/l2/atlantic-query/from-trace-generation-to-proof-generation",
                     base_url
                 ))?,
-                proof_generation: Url::parse(&format!(
-                    "{}/l2/submit-sharp-query/proof-generation",
-                    base_url
-                ))?,
+                proof_generation: Url::parse(&format!("{}/proof-generation", base_url))?,
                 from_proof_generation_to_proof_verification: Url::parse(&format!(
-                    "{}/l2/submit-sharp-query/from-proof-generation-to-proof-verification",
+                    "{}/l2/atlantic-query/from-proof-generation-to-proof-verification",
                     base_url
                 ))?,
                 proof_verification: Url::parse(&format!(
-                    "{}/l2/submit-sharp-query/proof-verification",
+                    "{}/l2/atlantic-query/proof-verification",
                     base_url
                 ))?,
             },
             sharp_queries: SharpQueriesEndpoints {
-                get_queries: Url::parse(&format!("{}/sharp-queries", base_url))?,
-                get_query: Url::parse(&format!("{}/sharp-query/", base_url))?,
-                get_query_jobs: Url::parse(&format!("{}/sharp-query-jobs/", base_url))?,
+                get_queries: Url::parse(&format!("{}/atlantic-queries", base_url))?,
+                get_query: Url::parse(&format!("{}/atlantic-query/", base_url))?,
+                get_query_jobs: Url::parse(&format!("{}/atlantic-query-jobs/", base_url))?,
             },
             health_check: HealthCheckEndpoint {
                 is_alive: Url::parse(&format!("{}/is-alive", base_url))?,

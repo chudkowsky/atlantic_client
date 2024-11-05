@@ -21,7 +21,7 @@ impl SharpSdk {
 
     pub async fn get_sharp_query_jobs(
         &self,
-        sharp_query_id: String,
+        sharp_query_id: &str,
     ) -> Result<JobResponse, SharpSdkError> {
         info!("Checking job status for sharpQueryId: {}", sharp_query_id);
         let url = format!("{}{}", self.sharp_queries.get_query_jobs, sharp_query_id);
@@ -74,13 +74,12 @@ impl SharpSdk {
         Ok(response)
     }
 
-    pub async fn get_proof(&self, proof_path: String) -> Result<ProverResult, SharpSdkError> {
+    pub async fn get_proof(&self, proof_path: String) -> Result<String, SharpSdkError> {
         let url = format!("https://sharp.api.herodotus.cloud/{}", proof_path);
         let client = reqwest::Client::new();
         let response = client.get(&url).send().await?;
         let response_text = response.text().await?;
-        let proof = prover_result(response_text)?;
-        Ok(proof)
+        Ok(response_text)
     }
 }
 
