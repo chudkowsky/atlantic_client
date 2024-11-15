@@ -90,7 +90,7 @@ impl AtlanticSdk {
         pie_file: Vec<u8>,
         layout: &str,
         prover: ProverVersion,
-    ) -> Result<String, AtlanticSdkError> {
+    ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
             .part(
                 "pieFile",
@@ -111,9 +111,8 @@ impl AtlanticSdk {
             .multipart(form)
             .send()
             .await?
-            .text()
+            .json::<QueryResponse>()
             .await?;
-
         Ok(response)
     }
 }
