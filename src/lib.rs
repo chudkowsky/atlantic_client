@@ -2,18 +2,14 @@ pub mod error;
 pub mod l1_sharp;
 pub mod l2_sharp;
 pub mod models;
-use cairo_proof_parser::{
-    json_parser::proof_from_annotations,
-    output::ExtractOutputResult,
-    program::{CairoVersion, ExtractProgramResult},
-    ProofJSON,
-};
-use error::SharpSdkError;
-use models::{JobResponse, ProverResult, SharpQueriesResponse, SharpQueryResponse, SharpSdk};
+pub mod proof_gen_trace_gen;
+
+use error::AtlanticSdkError;
+use models::{AtlanticSdk, JobResponse, SharpQueriesResponse, SharpQueryResponse};
 use tracing::info;
 
-impl SharpSdk {
-    pub async fn get_is_alive(&self) -> Result<bool, SharpSdkError> {
+impl AtlanticSdk {
+    pub async fn get_is_alive(&self) -> Result<bool, AtlanticSdkError> {
         info!("Checking if SHARP API is alive");
         let res = reqwest::get(self.health_check.is_alive.clone()).await?;
         Ok(res.status().is_success())
@@ -22,9 +18,9 @@ impl SharpSdk {
     pub async fn get_sharp_query_jobs(
         &self,
         sharp_query_id: &str,
-    ) -> Result<JobResponse, SharpSdkError> {
+    ) -> Result<JobResponse, AtlanticSdkError> {
         info!("Checking job status for sharpQueryId: {}", sharp_query_id);
-        let url = format!("{}{}", self.sharp_queries.get_query_jobs, sharp_query_id);
+        let url = format!("{}{}", self.atlantic_queries.get_query_jobs, sharp_query_id);
         let client = reqwest::Client::new();
         let response = client
             .get(&url)
@@ -39,8 +35,8 @@ impl SharpSdk {
     pub async fn get_sharp_query(
         &self,
         sharp_query_id: &str,
-    ) -> Result<SharpQueryResponse, SharpSdkError> {
-        let url = format!("{}{}", self.sharp_queries.get_query, sharp_query_id);
+    ) -> Result<SharpQueryResponse, AtlanticSdkError> {
+        let url = format!("{}{}", self.atlantic_queries.get_query, sharp_query_id);
         let client = reqwest::Client::new();
         let response = client
             .get(url)
@@ -53,18 +49,26 @@ impl SharpSdk {
     }
     pub async fn get_sharp_queries(
         &self,
-        limit: u32,
-        offset: u32,
-    ) -> Result<SharpQueriesResponse, SharpSdkError> {
+        limit: Option<u32>,
+        offset: Option<u32>,
+    ) -> Result<SharpQueriesResponse, AtlanticSdkError> {
         let mut query_params = vec![("apiKey", self.api_key.as_str())];
-        let limit_str = limit.to_string();
-        query_params.push(("limit", &limit_str));
-        let offset_str = offset.to_string();
-        query_params.push(("offset", &offset_str));
+        let mut optional_params = std::collections::HashMap::new();
+
+        if let Some(limit) = limit {
+            optional_params.insert("limit", limit.to_string());
+        }
+        if let Some(offset) = offset {
+            optional_params.insert("offset", offset.to_string());
+        }
+        // Populate query_params with references
+        for (key, value) in &optional_params {
+            query_params.push((key, value.as_str()));
+        }
 
         let client = reqwest::Client::new();
         let response = client
-            .get(self.sharp_queries.get_queries.clone())
+            .get(self.atlantic_queries.get_queries.clone())
             .query(&query_params)
             .send()
             .await?
@@ -74,31 +78,14 @@ impl SharpSdk {
         Ok(response)
     }
 
-    pub async fn get_proof(&self, proof_path: String) -> Result<String, SharpSdkError> {
-        let url = format!("https://sharp.api.herodotus.cloud/{}", proof_path);
+    pub async fn get_proof(&self, query_id: String) -> Result<String, AtlanticSdkError> {
+        let url = format!(
+            "https://atlantic-queries.s3.nl-ams.scw.cloud/sharp_queries/query_{}/proof.json",
+            query_id
+        );
         let client = reqwest::Client::new();
         let response = client.get(&url).send().await?;
         let response_text = response.text().await?;
         Ok(response_text)
     }
-}
-
-pub fn prover_result(proof: String) -> Result<ProverResult, SharpSdkError> {
-    let proof_json = serde_json::from_str::<ProofJSON>(&proof)?;
-    let proof_from_annotations = proof_from_annotations(proof_json)?;
-    let ExtractProgramResult { program_hash, .. } =
-        proof_from_annotations.extract_program(CairoVersion::Cairo0)?;
-    let ExtractOutputResult {
-        program_output,
-        program_output_hash,
-    } = proof_from_annotations.extract_output()?;
-    let serialized_proof = proof_from_annotations.to_felts();
-    let prover_result = ProverResult {
-        proof: proof.clone(),
-        program_hash,
-        program_output,
-        program_output_hash,
-        serialized_proof,
-    };
-    Ok(prover_result)
 }

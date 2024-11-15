@@ -1,5 +1,6 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
-use starknet_types_core::felt::Felt;
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,22 +18,22 @@ pub struct Context {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Job {
     pub id: String,
+    #[serde(rename = "sharpQueryId")]
+    pub sharp_query_id: String,
     pub status: String,
+    #[serde(rename = "jobName")]
+    pub job_name: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "completedAt")]
+    pub completed_at: Option<String>,
     pub context: Option<Context>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct JobResponse {
     pub jobs: Vec<Job>,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct ProverResult {
-    pub proof: String,
-    pub serialized_proof: Vec<Felt>,
-    pub program_hash: Felt,
-    pub program_output: Vec<Felt>,
-    pub program_output_hash: Felt,
+    pub steps: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -75,41 +76,76 @@ pub enum ProverVersion {
     Starkware,
     Herodotus,
 }
-impl ProverVersion {
-    pub fn to_string(&self) -> String {
+impl Display for ProverVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ProverVersion::Starkware => "starkware_sharp".to_string(),
-            ProverVersion::Herodotus => "herodotus_stone".to_string(),
+            ProverVersion::Starkware => write!(f, "starkware_sharp"),
+            ProverVersion::Herodotus => write!(f, "herodotus_stone"),
+        }
+    }
+}
+pub enum Layout {
+    StarknetWithKeccak,
+    Recursive,
+    Starknet,
+    RecursiveWithPoseidon,
+    Dex,
+    Small,
+    Dynamic,
+}
+impl Display for Layout {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Layout::StarknetWithKeccak => write!(f, "starknet_with_keccak"),
+            Layout::Recursive => write!(f, "recursive"),
+            Layout::Starknet => write!(f, "starknet"),
+            Layout::RecursiveWithPoseidon => write!(f, "recursive_with_poseidon"),
+            Layout::Dex => write!(f, "dex"),
+            Layout::Small => write!(f, "small"),
+            Layout::Dynamic => write!(f, "dynamic"),
+        }
+    }
+}
+pub enum CairoVersion {
+    Zero,
+}
+impl Display for CairoVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CairoVersion::Zero => write!(f, "0"),
         }
     }
 }
 #[derive(Debug, Clone)]
 
-pub struct SharpSdk {
+pub struct AtlanticSdk {
     pub api_key: String,
     pub l1: L1Endpoints,
     pub l2: L2Endpoints,
-    pub sharp_queries: SharpQueriesEndpoints,
+    pub proof_generation_trace_generation: ProofGenTraceGenEndpoints,
+    pub atlantic_queries: AtlanticQueriesEndpoints,
     pub health_check: HealthCheckEndpoint,
     pub program_registry: ProgramRegistryEndpoint,
 }
 #[derive(Debug, Clone)]
 pub struct L1Endpoints {
     pub atlantic_query: Url,
-    pub trace_generation: Url,
     pub proof_generation_verification: Url,
 }
 #[derive(Debug, Clone)]
 pub struct L2Endpoints {
     pub atlantic_query: Url,
-    pub trace_generation: Url,
-    pub from_trace_to_proof_generation: Url,
-    pub proof_generation: Url,
     pub from_proof_generation_to_proof_verification: Url,
     pub proof_verification: Url,
 }
 #[derive(Debug, Clone)]
-pub struct SharpQueriesEndpoints {
+pub struct ProofGenTraceGenEndpoints {
+    pub trace_generation: Url,
+    pub proof_generation: Url,
+    pub trace_gen_to_proof_gen: Url,
+}
+#[derive(Debug, Clone)]
+pub struct AtlanticQueriesEndpoints {
     pub get_queries: Url,
     pub get_query: Url,
     pub get_query_jobs: Url,
@@ -123,51 +159,36 @@ pub struct ProgramRegistryEndpoint {
     pub submit_program: Url,
 }
 
-impl SharpSdk {
-    pub fn new(api_key: String, base_url: &str) -> Result<Self, url::ParseError> {
+impl AtlanticSdk {
+    pub fn new(api_key: String, base_url: Url) -> Result<Self, url::ParseError> {
         Ok(Self {
             api_key,
             l1: L1Endpoints {
-                atlantic_query: Url::parse(&format!("{}/l1/atlantic-query", base_url))?,
-                trace_generation: Url::parse(&format!(
-                    "{}/l1/atlantic-query/trace_generation",
-                    base_url
-                ))?,
-                proof_generation_verification: Url::parse(&format!(
-                    "{}/l1/atlantic-query/proof_generation_verification",
-                    base_url
-                ))?,
+                atlantic_query: base_url.join("/l1/atlantic-query")?,
+                proof_generation_verification: base_url
+                    .join("/l1/atlantic-query/proof-generation-verification")?,
             },
             l2: L2Endpoints {
-                atlantic_query: Url::parse(&format!("{}/l2/atlantic-query", base_url))?,
-                trace_generation: Url::parse(&format!(
-                    "{}/l2/atlantic-query/trace-generation",
-                    base_url
-                ))?,
-                from_trace_to_proof_generation: Url::parse(&format!(
-                    "{}/l2/atlantic-query/from-trace-generation-to-proof-generation",
-                    base_url
-                ))?,
-                proof_generation: Url::parse(&format!("{}/proof-generation", base_url))?,
-                from_proof_generation_to_proof_verification: Url::parse(&format!(
-                    "{}/l2/atlantic-query/from-proof-generation-to-proof-verification",
-                    base_url
-                ))?,
-                proof_verification: Url::parse(&format!(
-                    "{}/l2/atlantic-query/proof-verification",
-                    base_url
-                ))?,
+                atlantic_query: base_url.join("/l2/atlantic-query")?,
+                from_proof_generation_to_proof_verification: base_url
+                    .join("/l2/atlantic-query/proof-generation-verification")?,
+                proof_verification: base_url.join("/l2/atlantic-query/proof-verification")?,
             },
-            sharp_queries: SharpQueriesEndpoints {
-                get_queries: Url::parse(&format!("{}/atlantic-queries", base_url))?,
-                get_query: Url::parse(&format!("{}/atlantic-query/", base_url))?,
-                get_query_jobs: Url::parse(&format!("{}/atlantic-query-jobs/", base_url))?,
+            proof_generation_trace_generation: ProofGenTraceGenEndpoints {
+                trace_generation: base_url.join("/trace-generation")?,
+                proof_generation: base_url.join("/proof-generation")?,
+                trace_gen_to_proof_gen: base_url.join("/trace-generation-proof-generation")?,
+            },
+            atlantic_queries: AtlanticQueriesEndpoints {
+                get_queries: base_url.join("/atlantic-queries")?,
+                get_query: base_url.join("/atlantic-query/")?,
+                get_query_jobs: base_url.join("/atlantic-query-jobs/")?,
             },
             health_check: HealthCheckEndpoint {
-                is_alive: Url::parse(&format!("{}/is-alive", base_url))?,
+                is_alive: base_url.join("/is-alive")?,
             },
             program_registry: ProgramRegistryEndpoint {
-                submit_program: Url::parse(&format!("{}/submit-program", base_url))?,
+                submit_program: base_url.join("/submit-program")?,
             },
         })
     }

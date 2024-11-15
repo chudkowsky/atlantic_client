@@ -1,18 +1,18 @@
 use crate::{
-    error::SharpSdkError,
-    models::{QueryResponse, SharpSdk},
+    error::AtlanticSdkError,
+    models::{AtlanticSdk, CairoVersion, Layout, QueryResponse},
 };
 use reqwest::{multipart, Response};
 
-impl SharpSdk {
-    pub async fn submit_l1_sharp_query(
+impl AtlanticSdk {
+    pub async fn submit_l1_atlantic_query(
         &self,
         program_hash: &str,
         program_file: Vec<u8>,
         input_file: Vec<u8>,
-        cairo_version: &str,
-        mock_fact_hash: &str,
-    ) -> Result<Response, SharpSdkError> {
+        cairo_version: CairoVersion,
+        mock_fact_hash: bool,
+    ) -> Result<Response, AtlanticSdkError> {
         let form = multipart::Form::new()
             .text("programHash", program_hash.to_string())
             .part(
@@ -39,46 +39,12 @@ impl SharpSdk {
         Ok(response)
     }
 
-    pub async fn l1_trace_generation(
-        &self,
-        program_hash: &str,
-        program_file: Vec<u8>,
-        input_file: Vec<u8>,
-    ) -> Result<QueryResponse, SharpSdkError> {
-        let form = multipart::Form::new()
-            .text("programHash", program_hash.to_string())
-            .part(
-                "programFile",
-                multipart::Part::bytes(program_file)
-                    .file_name("program.json")
-                    .mime_str("application/json")?,
-            )
-            .part(
-                "inputFile",
-                multipart::Part::bytes(input_file)
-                    .file_name("input.json")
-                    .mime_str("application/json")?,
-            )
-            .text("cairoVersion", 0.to_string());
-
-        let client = reqwest::Client::new();
-        let url = format!("{}?apiKey={}", self.l2.trace_generation, self.api_key);
-        let response = client
-            .post(&url)
-            .multipart(form)
-            .send()
-            .await?
-            .json::<QueryResponse>()
-            .await?;
-        Ok(response)
-    }
-
     pub async fn l1_proof_generation_verification(
         &self,
         pie_file: Vec<u8>,
-        layout: &str,
+        layout: Layout,
         mock_fact_hash: bool,
-    ) -> Result<QueryResponse, SharpSdkError> {
+    ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
             .part(
                 "pieFile",
