@@ -2,7 +2,7 @@ use reqwest::multipart;
 
 use crate::{
     error::AtlanticSdkError,
-    models::{ProverVersion, QueryResponse},
+    models::{Layout, ProverVersion, QueryResponse},
 };
 
 use super::AtlanticSdk;
@@ -88,7 +88,7 @@ impl AtlanticSdk {
     pub async fn proof_generation(
         &self,
         pie_file: Vec<u8>,
-        layout: &str,
+        layout: Layout,
         prover: ProverVersion,
     ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()

@@ -5,7 +5,7 @@ use url::Url;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct QueryResponse {
-    #[serde(rename = "sharpQueryId")]
+    #[serde(rename = "atlanticQueryId")]
     pub sharp_query_id: String,
 }
 
