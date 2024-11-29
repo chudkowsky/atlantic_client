@@ -52,6 +52,8 @@ pub async fn main() -> Result<(), AtlanticSdkError> {
     Ok(())
 }
 ```
+### Example 
+Atlantic client comes with example pie, and cairo0 program which can be used for testing ablities of library 
 
 ## Contributing
 
