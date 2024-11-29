@@ -1,9 +1,13 @@
-[package]
-name = "atlantic_client"
+[workspace]
+resolver = "2"
+members = ["atlantic_client"]
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+authors = ["Mateusz Chudkowski"]
 
-[dependencies]
+[workspace.dependencies]
 reqwest = { version = "0.12.7", features = ["json", "multipart","rustls-tls"],default-features = false }
 tokio = { version = "1.39.3", features = ["full"] }
 clap = { version = "4.5.16", features = ["derive", "env"] }

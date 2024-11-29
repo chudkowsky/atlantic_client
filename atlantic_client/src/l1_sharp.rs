@@ -2,7 +2,7 @@ use crate::{
     error::AtlanticSdkError,
     models::{AtlanticSdk, CairoVersion, Layout, QueryResponse},
 };
-use reqwest::{multipart, Response};
+use reqwest::multipart;
 
 impl AtlanticSdk {
     pub async fn submit_l1_atlantic_query(
@@ -12,7 +12,7 @@ impl AtlanticSdk {
         input_file: Vec<u8>,
         cairo_version: CairoVersion,
         mock_fact_hash: bool,
-    ) -> Result<Response, AtlanticSdkError> {
+    ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
             .text("programHash", program_hash.to_string())
             .part(
@@ -35,6 +35,8 @@ impl AtlanticSdk {
             .query(&[("apiKey", &self.api_key)])
             .multipart(form)
             .send()
+            .await?
+            .json::<QueryResponse>()
             .await?;
         Ok(response)
     }

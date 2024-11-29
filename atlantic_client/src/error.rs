@@ -14,4 +14,6 @@ pub enum AtlanticSdkError {
     UrlParseError(#[from] url::ParseError),
     #[error("Missing program hash or program file")]
     MissingProgramHashOrFile,
+    #[error("Invalid layout")]
+    InvalidLayout,
 }

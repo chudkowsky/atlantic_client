@@ -49,6 +49,7 @@ impl AtlanticSdk {
         program_hash: &str,
         program_file: Vec<u8>,
         input_file: Vec<u8>,
+        layout: Layout,
         prover: ProverVersion,
     ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
@@ -66,6 +67,7 @@ impl AtlanticSdk {
                     .mime_str("application/json")?,
             )
             .text("cairoVersion", 0.to_string())
+            .text("layout", layout.to_string())
             .text("prover", prover.to_string());
 
         let client = reqwest::Client::new();
