@@ -3,6 +3,8 @@ name = "atlantic_client"
 version = "0.1.0"
 edition = "2021"
 license-file = "LICENSE"
+repository = "https://github.com/chudkowsky/atlantic_client"
+description = "Atlantic client for generating proofs with Atlantic Prover"
 authors = ["Mateusz Chudkowski"]
 
 [dependencies]
