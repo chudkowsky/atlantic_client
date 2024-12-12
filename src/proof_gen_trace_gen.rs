@@ -12,6 +12,7 @@ impl AtlanticSdk {
         program_hash: &str,
         program_file: Vec<u8>,
         input_file: Vec<u8>,
+        external_id: &str,
     ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
             .text("programHash", program_hash.to_string())
@@ -27,21 +28,28 @@ impl AtlanticSdk {
                     .file_name("input.json")
                     .mime_str("application/json")?,
             )
-            .text("cairoVersion", 0.to_string());
+            .text("cairoVersion", 0.to_string())
+            .text("externalId", external_id.to_string());
 
         let client = reqwest::Client::new();
         let url = format!(
             "{}?apiKey={}",
             self.proof_generation_trace_generation.trace_generation, self.api_key
         );
-        let response = client
-            .post(&url)
-            .multipart(form)
-            .send()
-            .await?
-            .json::<QueryResponse>()
-            .await?;
-        Ok(response)
+        let response = client.post(&url).multipart(form).send().await?;
+
+        let status = response.status();
+
+        match status {
+            reqwest::StatusCode::CREATED => {
+                let response = response.json::<QueryResponse>().await?;
+                Ok(response)
+            }
+            _ => {
+                let response = response.text().await?;
+                Err(AtlanticSdkError::CustomError(response))
+            }
+        }
     }
 
     pub async fn trace_gen_to_proof_gen(
@@ -51,6 +59,7 @@ impl AtlanticSdk {
         input_file: Vec<u8>,
         layout: Layout,
         prover: ProverVersion,
+        external_id: &str,
     ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
             .text("programHash", program_hash.to_string())
@@ -68,7 +77,8 @@ impl AtlanticSdk {
             )
             .text("cairoVersion", 0.to_string())
             .text("layout", layout.to_string())
-            .text("prover", prover.to_string());
+            .text("prover", prover.to_string())
+            .text("externalId", external_id.to_string());
 
         let client = reqwest::Client::new();
         let url = format!(
@@ -77,21 +87,27 @@ impl AtlanticSdk {
                 .trace_gen_to_proof_gen,
             self.api_key
         );
-        let response = client
-            .post(&url)
-            .multipart(form)
-            .send()
-            .await?
-            .json::<QueryResponse>()
-            .await?;
+        let response = client.post(&url).multipart(form).send().await?;
 
-        Ok(response)
+        let status = response.status();
+
+        match status {
+            reqwest::StatusCode::CREATED => {
+                let response = response.json::<QueryResponse>().await?;
+                Ok(response)
+            }
+            _ => {
+                let response = response.text().await?;
+                Err(AtlanticSdkError::CustomError(response))
+            }
+        }
     }
     pub async fn proof_generation(
         &self,
         pie_file: Vec<u8>,
         layout: Layout,
         prover: ProverVersion,
+        external_id: &str,
     ) -> Result<QueryResponse, AtlanticSdkError> {
         let form = multipart::Form::new()
             .part(
@@ -101,20 +117,27 @@ impl AtlanticSdk {
                     .mime_str("application/zip")?,
             )
             .text("layout", layout.to_string())
-            .text("prover", prover.to_string());
+            .text("prover", prover.to_string())
+            .text("externalId", external_id.to_string());
 
         let client = reqwest::Client::new();
         let url = format!(
             "{}?apiKey={}",
             self.proof_generation_trace_generation.proof_generation, self.api_key
         );
-        let response = client
-            .post(&url)
-            .multipart(form)
-            .send()
-            .await?
-            .json::<QueryResponse>()
-            .await?;
-        Ok(response)
+        let response = client.post(&url).multipart(form).send().await?;
+
+        let status = response.status();
+
+        match status {
+            reqwest::StatusCode::CREATED => {
+                let response = response.json::<QueryResponse>().await?;
+                Ok(response)
+            }
+            _ => {
+                let response = response.text().await?;
+                Err(AtlanticSdkError::CustomError(response))
+            }
+        }
     }
 }

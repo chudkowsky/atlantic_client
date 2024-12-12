@@ -27,9 +27,18 @@ impl AtlanticSdk {
             .header("accept", "application/json")
             .send()
             .await?;
-        let response_text = response.text().await?;
-        let response: JobResponse = serde_json::from_str(&response_text)?;
-        Ok(response)
+        let status = response.status();
+        match status {
+            reqwest::StatusCode::OK => {
+                let response_text = response.text().await?;
+                let response: JobResponse = serde_json::from_str(&response_text)?;
+                Ok(response)
+            }
+            _ => {
+                let response_text = response.text().await?;
+                Err(AtlanticSdkError::CustomError(response_text))
+            }
+        }
     }
 
     pub async fn get_sharp_query(
@@ -42,10 +51,18 @@ impl AtlanticSdk {
             .get(url)
             .query(&[("apiKey", &self.api_key)])
             .send()
-            .await?
-            .json::<SharpQueryResponse>()
             .await?;
-        Ok(response)
+        let status = response.status();
+        match status {
+            reqwest::StatusCode::OK => {
+                let response = response.json::<SharpQueryResponse>().await?;
+                Ok(response)
+            }
+            _ => {
+                let response = response.text().await?;
+                Err(AtlanticSdkError::CustomError(response))
+            }
+        }
     }
     pub async fn get_sharp_queries(
         &self,
@@ -71,11 +88,18 @@ impl AtlanticSdk {
             .get(self.atlantic_queries.get_queries.clone())
             .query(&query_params)
             .send()
-            .await?
-            .json::<SharpQueriesResponse>()
             .await?;
-
-        Ok(response)
+        let status = response.status();
+        match status {
+            reqwest::StatusCode::OK => {
+                let response = response.json::<SharpQueriesResponse>().await?;
+                Ok(response)
+            }
+            _ => {
+                let response = response.text().await?;
+                Err(AtlanticSdkError::CustomError(response))
+            }
+        }
     }
 
     pub async fn get_proof(&self, query_id: String) -> Result<String, AtlanticSdkError> {
@@ -85,6 +109,13 @@ impl AtlanticSdk {
         );
         let client = reqwest::Client::new();
         let response = client.get(&url).send().await?;
+        let status = response.status();
+        if status != reqwest::StatusCode::OK {
+            return Err(AtlanticSdkError::CustomError(format!(
+                "Failed to get proof for query_id: {}. Status: {}",
+                query_id, status
+            )));
+        }
         let response_text = response.text().await?;
         Ok(response_text)
     }

@@ -16,4 +16,6 @@ pub enum AtlanticSdkError {
     MissingProgramHashOrFile,
     #[error("Invalid layout")]
     InvalidLayout,
+    #[error("{0}")]
+    CustomError(String),
 }

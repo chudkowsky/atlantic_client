@@ -10,6 +10,11 @@ pub struct QueryResponse {
     #[serde(rename = "atlanticQueryId")]
     pub atlantic_query_id: String,
 }
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FactHashResponse {
+    #[serde(rename = "factHash")]
+    pub fact_hash: String,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Context {
@@ -161,12 +166,14 @@ pub struct AtlanticSdk {
 pub struct L1Endpoints {
     pub atlantic_query: Url,
     pub proof_generation_verification: Url,
+    pub fact_hash_calculation: Url,
 }
 #[derive(Debug, Clone)]
 pub struct L2Endpoints {
     pub atlantic_query: Url,
     pub from_proof_generation_to_proof_verification: Url,
     pub proof_verification: Url,
+    pub fact_hash_calculation: Url,
 }
 #[derive(Debug, Clone)]
 pub struct ProofGenTraceGenEndpoints {
@@ -197,12 +204,14 @@ impl AtlanticSdk {
                 atlantic_query: base_url.join("/v1/l1/atlantic-query")?,
                 proof_generation_verification: base_url
                     .join("/v1/l1/atlantic-query/proof-generation-verification")?,
+                fact_hash_calculation: base_url.join("/v1/l1/fact-hash-calculation")?,
             },
             l2: L2Endpoints {
                 atlantic_query: base_url.join("/v1/l2/atlantic-query")?,
                 from_proof_generation_to_proof_verification: base_url
                     .join("/v1/l2/atlantic-query/proof-generation-verification")?,
                 proof_verification: base_url.join("/v1/l2/atlantic-query/proof-verification")?,
+                fact_hash_calculation: base_url.join("/v1/l2/fact-hash-calculation")?,
             },
             proof_generation_trace_generation: ProofGenTraceGenEndpoints {
                 trace_generation: base_url.join("/v1/trace-generation")?,
@@ -381,7 +390,7 @@ mod tests {
         assert_eq!(job_response.steps.len(), 4);
     }
     #[test]
-    fn test_deserialize_query(){
+    fn test_deserialize_query() {
         let query = r#"
             {
                 "atlanticQuery": {
@@ -415,7 +424,7 @@ mod tests {
         println!("{:#?}", query_response);
     }
     #[test]
-    fn test_deserialize_atlantic_queries(){
+    fn test_deserialize_atlantic_queries() {
         let queries = r#"
         {
             "sharpQueries": [
