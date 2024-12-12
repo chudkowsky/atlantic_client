@@ -29,7 +29,7 @@ impl AtlanticSdk {
             .text("cairoVersion", 0.to_string())
             .text("prover", prover.to_string())
             .text("mockFactHash", mock_fact_hash.to_string())
-            .text("extrnalId", external_id.to_string());
+            .text("externalId", external_id.to_string());
         let client = reqwest::Client::new();
         let url = format!("{}?apiKey={}", self.l2.atlantic_query, self.api_key);
         let response = client.post(&url).multipart(form).send().await?;
