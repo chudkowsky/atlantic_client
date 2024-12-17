@@ -55,41 +55,41 @@ pub struct JobResponse {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SharpQueryDetails {
-    id: String,
+    pub id: String,
     #[serde(rename = "submittedByClient")]
-    submitted_by_client: String,
-    status: String,
-    step: Option<String>,
+    pub submitted_by_client: String,
+    pub status: String,
+    pub step: Option<String>,
     #[serde(rename = "programHash")]
-    program_hash: Option<String>,
-    layout: Option<String>,
+    pub program_hash: Option<String>,
+    pub layout: Option<String>,
     #[serde(rename = "programFactHash")]
-    program_fact_hash: Option<String>,
-    price: String,
+    pub program_fact_hash: Option<String>,
+    pub price: String,
     #[serde(rename = "creditsUsed")]
-    credits_used: usize,
+    pub credits_used: usize,
     #[serde(rename = "traceCreditsUsed")]
-    trace_credits_used: usize,
+    pub trace_credits_used: usize,
     #[serde(rename = "isFactMocked")]
-    is_fact_mocked: bool,
-    prover: Option<String>,
-    chain: String,
-    steps: Vec<String>,
+    pub is_fact_mocked: bool,
+    pub prover: Option<String>,
+    pub chain: String,
+    pub steps: Vec<String>,
     #[serde(rename = "createdAt")]
-    created_at: String,
+    pub created_at: String,
     #[serde(rename = "completedAt")]
-    completed_at: Option<String>,
+    pub completed_at: Option<String>,
 }
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SharpQueryResponse {
     #[serde(rename = "atlanticQuery")]
-    sharp_query: SharpQueryDetails,
+    pub sharp_query: SharpQueryDetails,
 }
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SharpQueriesResponse {
     #[serde(rename = "sharpQueries")]
-    sharp_queries: Vec<SharpQueryDetails>, // List of SharpQueryDetails
-    total: usize, // Total count of queries
+    pub sharp_queries: Vec<SharpQueryDetails>, // List of SharpQueryDetails
+    pub total: usize, // Total count of queries
 }
 pub enum ProverVersion {
     Starkware,
