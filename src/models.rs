@@ -56,6 +56,8 @@ pub struct JobResponse {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SharpQueryDetails {
     pub id: String,
+    #[serde(rename = "externalId")]
+    pub external_id: String,
     #[serde(rename = "submittedByClient")]
     pub submitted_by_client: String,
     pub status: String,
@@ -66,6 +68,8 @@ pub struct SharpQueryDetails {
     #[serde(rename = "programFactHash")]
     pub program_fact_hash: Option<String>,
     pub price: String,
+    #[serde(rename = "gasUsed")]
+    pub gas_used:usize,
     #[serde(rename = "creditsUsed")]
     pub credits_used: usize,
     #[serde(rename = "traceCreditsUsed")]
@@ -73,7 +77,7 @@ pub struct SharpQueryDetails {
     #[serde(rename = "isFactMocked")]
     pub is_fact_mocked: bool,
     pub prover: Option<String>,
-    pub chain: String,
+    pub chain: Option<String>,
     pub steps: Vec<String>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
