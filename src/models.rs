@@ -69,13 +69,13 @@ pub struct SharpQueryDetails {
     pub program_fact_hash: Option<String>,
     pub price: String,
     #[serde(rename = "gasUsed")]
-    pub gas_used:usize,
+    pub gas_used: usize,
     #[serde(rename = "creditsUsed")]
     pub credits_used: usize,
     #[serde(rename = "traceCreditsUsed")]
     pub trace_credits_used: usize,
     #[serde(rename = "isFactMocked")]
-    pub is_fact_mocked: bool,
+    pub is_fact_mocked: Option<bool>,
     pub prover: Option<String>,
     pub chain: Option<String>,
     pub steps: Vec<String>,
